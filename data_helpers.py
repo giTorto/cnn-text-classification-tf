@@ -40,7 +40,9 @@ def create_one_hot_encoding(dialog_act):
         "greeting":11
     }
     vector = np.zeros(len(da2index.keys()))
-    vector[da2index.get(dialog_act)] = 1
+    index = da2index.get(dialog_act.lower(), None)
+    if index is not None:
+        vector[index] = 1
     return vector
 
 def sample2text_prev_da(examples):
