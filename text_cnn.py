@@ -58,7 +58,6 @@ class TextCNN(object):
         self.h_pool = tf.concat(pooled_outputs, 3)
         # flatting the representation
         self.h_pool_flat = tf.reshape(self.h_pool, [-1, num_filters_total])
-        print tf.shape(self.h_pool_flat)
         # Add previous dialog act
         self.h_pool_added_dialog_act = tf.concat([self.h_pool_flat, self.input_z], 1)
         print(tf.shape(self.h_pool_added_dialog_act))
