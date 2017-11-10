@@ -13,7 +13,7 @@ class TextCNN(object):
 
         # Placeholders for input, output and dropout
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
-        self.input_z = tf.placeholder(tf.int32, [None, num_classes*previous_da], name="input_z")
+        self.input_z = tf.placeholder(tf.float32, [None, num_classes*previous_da], name="input_z")
         self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
@@ -56,20 +56,22 @@ class TextCNN(object):
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)
         self.h_pool = tf.concat(pooled_outputs, 3)
-        # Add previous dialog act
-        self.h_pool_added_dialog_act = tf.concat(self.h_pool, self.input_z)
         # flatting the representation
-        self.h_pool_flat = tf.reshape(self.h_pool_added_dialog_act, [-1, num_filters_total])
+        self.h_pool_flat = tf.reshape(self.h_pool, [-1, num_filters_total])
+        print tf.shape(self.h_pool_flat)
+        # Add previous dialog act
+        self.h_pool_added_dialog_act = tf.concat([self.h_pool_flat, self.input_z], 1)
+        print(tf.shape(self.h_pool_added_dialog_act))
 
         # Add dropout
         with tf.name_scope("dropout"):
-            self.h_drop = tf.nn.dropout(self.h_pool_flat, self.dropout_keep_prob)
+            self.h_drop = tf.nn.dropout(self.h_pool_added_dialog_act, self.dropout_keep_prob)
 
         # Final (unnormalized) scores and predictions
         with tf.name_scope("output"):
             W = tf.get_variable(
                 "W",
-                shape=[num_filters_total, num_classes],
+                shape=[num_filters_total+(num_classes*previous_da), num_classes],
                 initializer=tf.contrib.layers.xavier_initializer())
             b = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="b")
             l2_loss += tf.nn.l2_loss(W)

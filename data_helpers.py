@@ -56,7 +56,7 @@ def sample2text_prev_da(examples):
         texts.append(text)
         das.append(da_encoding)
         prev_das.append(prev_da_encoding)
-    return [texts, prev_das, das]
+    return [texts, np.asarray(prev_das), np.asarray(das)]
 
 def load_data_and_labels_dialog_act(data_file):
     """
