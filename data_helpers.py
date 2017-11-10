@@ -24,6 +24,48 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
 
+def create_one_hot_encoding(dialog_act):
+    da2index = {
+        "statement":0,
+        "directive":1,
+        "commissive":2,
+        "infoq":3,
+        "checkq":4,
+        "choiceq":5,
+        "answer":6,
+        "feedback":7,
+        "thanking":8,
+        "apology":9,
+        "goodbye":10,
+        "greeting":11
+    }
+    vector = np.zeros(len(da2index.keys()))
+    vector[da2index.get(dialog_act)] = 1
+    return vector
+
+def sample2text_prev_da(examples):
+    texts = []
+    das = []
+    prev_das = []
+    for e in examples :
+        text = e.split(",")[0]
+        da = e.split(",")[-1].split(";;")[0]
+        da_encoding = create_one_hot_encoding(da)
+        prev_da = e.split(",")[-1].split(";;")[1]
+        prev_da_encoding = create_one_hot_encoding(prev_da)
+        texts.append(text)
+        das.append(da_encoding)
+        prev_das.append(prev_da_encoding)
+    return [texts, prev_das, das]
+
+def load_data_and_labels_dialog_act(data_file):
+    """
+    Loads MR polarity data from files, splits the data into words and generates labels.
+    Returns split sentences and labels.
+    """
+    # Load data from files
+    examples = list(open(data_file, "r").readlines())
+    return sample2text_prev_da(examples)
 
 def load_data_and_labels(positive_data_file, negative_data_file):
     """
@@ -46,6 +88,25 @@ def load_data_and_labels(positive_data_file, negative_data_file):
 
 
 def batch_iter(data, batch_size, num_epochs, shuffle=True):
+    """
+    Generates a batch iterator for a dataset.
+    """
+    data = np.array(data)
+    data_size = len(data)
+    num_batches_per_epoch = int((len(data)-1)/batch_size) + 1
+    for epoch in range(num_epochs):
+        # Shuffle the data at each epoch
+        if shuffle:
+            shuffle_indices = np.random.permutation(np.arange(data_size))
+            shuffled_data = data[shuffle_indices]
+        else:
+            shuffled_data = data
+        for batch_num in range(num_batches_per_epoch):
+            start_index = batch_num * batch_size
+            end_index = min((batch_num + 1) * batch_size, data_size)
+            yield shuffled_data[start_index:end_index]
+
+def batch_iter_da(data, batch_size, num_epochs, shuffle=True):
     """
     Generates a batch iterator for a dataset.
     """

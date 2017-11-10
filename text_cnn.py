@@ -9,10 +9,11 @@ class TextCNN(object):
     """
     def __init__(
       self, sequence_length, num_classes, vocab_size,
-      embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0):
+      embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0, previous_da=1):
 
         # Placeholders for input, output and dropout
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
+        self.input_z = tf.placeholder(tf.int32, [None, num_classes*previous_da], name="input_z")
         self.input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
         self.dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
@@ -55,7 +56,10 @@ class TextCNN(object):
         # Combine all the pooled features
         num_filters_total = num_filters * len(filter_sizes)
         self.h_pool = tf.concat(pooled_outputs, 3)
-        self.h_pool_flat = tf.reshape(self.h_pool, [-1, num_filters_total])
+        # Add previous dialog act
+        self.h_pool_added_dialog_act = tf.concat(self.h_pool, self.input_z)
+        # flatting the representation
+        self.h_pool_flat = tf.reshape(self.h_pool_added_dialog_act, [-1, num_filters_total])
 
         # Add dropout
         with tf.name_scope("dropout"):
