@@ -13,8 +13,8 @@ from tensorflow.contrib import learn
 # ==================================================
 
 # Data loading params
-tf.flags.DEFINE_float("dev_sample_percentage", .05, "Percentage of the training data to use for validation")
-tf.flags.DEFINE_string("positive_data_file", "/home/giuliano.tortoreto/slu/complete_learn2", "Data source for the training data.")
+tf.flags.DEFINE_float("dev_sample_percentage", .01, "Percentage of the training data to use for validation")
+tf.flags.DEFINE_string("positive_data_file", "./complete_learn2.txt", "Data source for the training data.")
 
 # Model Hyperparameters
 tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
@@ -25,7 +25,7 @@ tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 
 
 # Training parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-tf.flags.DEFINE_integer("num_epochs", 1500, "Number of training epochs (default: 200)")
+tf.flags.DEFINE_integer("num_epochs", 5, "Number of training epochs (default: 200)")
 tf.flags.DEFINE_integer("evaluate_every", 300, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 300, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
@@ -78,7 +78,7 @@ with tf.Graph().as_default():
     session_conf = tf.ConfigProto(
       allow_soft_placement=FLAGS.allow_soft_placement,
       log_device_placement=FLAGS.log_device_placement)
-    session_conf.gpu_options.per_process_gpu_memory_fraction = 0.3
+    session_conf.gpu_options.per_process_gpu_memory_fraction = 0.5
     session_conf.gpu_options.allow_growth = True
     sess = tf.Session(config=session_conf)
     with sess.as_default():

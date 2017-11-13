@@ -40,20 +40,32 @@ def create_one_hot_encoding(dialog_act):
         "greeting":11
     }
     vector = np.zeros(len(da2index.keys()))
-    index = da2index.get(dialog_act.lower(), None)
+    index = None
+    if dialog_act is not None:
+        index = da2index.get(dialog_act.lower(), None)
     if index is not None:
         vector[index] = 1
     return vector
+
+def append_to_additional_file(message):
+    with open("/home/giuliano.tortoreto/slu/logging_eval_info.txt",'a') as out_file:
+        out_file.write(str(message)+'\n')
 
 def sample2text_prev_da(examples):
     texts = []
     das = []
     prev_das = []
     for e in examples :
+        if e.strip() == "":
+            continue
         text = e.split(",")[0]
+        #append_to_additional_file(e)
         da = e.split(",")[-1].split(";;")[0]
         da_encoding = create_one_hot_encoding(da)
-        prev_da = e.split(",")[-1].split(";;")[1]
+        if len(e.split(",")[-1].split(";;")) >1 :
+            prev_da = e.split(",")[-1].split(";;")[1]
+        else:
+            prev_da = None
         prev_da_encoding = create_one_hot_encoding(prev_da)
         texts.append(text)
         das.append(da_encoding)
@@ -114,7 +126,7 @@ def batch_iter_da(data, batch_size, num_epochs, shuffle=True):
     """
     data = np.array(data)
     data_size = len(data)
-    num_batches_per_epoch = int((len(data)-1)/batch_size) + 1
+    num_batches = int((len(data)-1)/batch_size) + 1
     for epoch in range(num_epochs):
         # Shuffle the data at each epoch
         if shuffle:
@@ -122,7 +134,7 @@ def batch_iter_da(data, batch_size, num_epochs, shuffle=True):
             shuffled_data = data[shuffle_indices]
         else:
             shuffled_data = data
-        for batch_num in range(num_batches_per_epoch):
+        for batch_num in range(num_batches):
             start_index = batch_num * batch_size
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
