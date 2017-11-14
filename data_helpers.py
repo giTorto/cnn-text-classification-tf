@@ -1,8 +1,10 @@
+import json
+
 import numpy as np
 import re
 import itertools
 from collections import Counter
-
+import os
 
 def clean_str(string):
     """
@@ -24,21 +26,24 @@ def clean_str(string):
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
 
-def create_one_hot_encoding(dialog_act):
-    da2index = {
-        "statement":0,
-        "directive":1,
-        "commissive":2,
-        "infoq":3,
-        "checkq":4,
-        "choiceq":5,
-        "answer":6,
-        "feedback":7,
-        "thanking":8,
-        "apology":9,
-        "goodbye":10,
-        "greeting":11
-    }
+def create_one_hot_encoding(dialog_act, labels_dict):
+    if len(labels_dict.keys()) == 0:
+        da2index = {
+            "statement":0,
+            "directive":1,
+            "commissive":2,
+            "infoq":3,
+            "checkq":4,
+            "choiceq":5,
+            "answer":6,
+            "feedback":7,
+            "thanking":8,
+            "apology":9,
+            "goodbye":10,
+            "greeting":11
+        }
+    else:
+        da2index = labels_dict
     vector = np.zeros(len(da2index.keys()))
     index = None
     if dialog_act is not None:
@@ -51,7 +56,7 @@ def append_to_additional_file(message):
     with open("/home/giuliano.tortoreto/slu/logging_eval_info.txt",'a') as out_file:
         out_file.write(str(message)+'\n')
 
-def sample2text_prev_da(examples):
+def sample2text_prev_da(examples, labels_dict ={}, n_prev_da=1):
     texts = []
     das = []
     prev_das = []
@@ -61,25 +66,50 @@ def sample2text_prev_da(examples):
         text = e.split(",")[0]
         #append_to_additional_file(e)
         da = e.split(",")[-1].split(";;")[0]
-        da_encoding = create_one_hot_encoding(da)
-        if len(e.split(",")[-1].split(";;")) >1 :
-            prev_da = e.split(",")[-1].split(";;")[1]
-        else:
-            prev_da = None
-        prev_da_encoding = create_one_hot_encoding(prev_da)
+        da_encoding = create_one_hot_encoding(da, labels_dict)
+        #if len(e.split(",")[-1].split(";;")) >1 :
+        #    prev_da = e.split(",")[-1].split(";;")[1]
+        #else:
+        prev_da = None
+        prev_da_encoding = create_one_hot_encoding(prev_da, labels_dict)
         texts.append(text)
         das.append(da_encoding)
         prev_das.append(prev_da_encoding)
     return [texts, np.asarray(prev_das), np.asarray(das)]
 
-def load_data_and_labels_dialog_act(data_file):
+def create_labels_dict(training_data):
+    labels_set = set()
+    for e in training_data:
+        text = e.split(",")[0]
+        #append_to_additional_file(e)
+        da = e.split(",")[-1].split(";;")[0]
+        if da == "" or da == "\n":
+            continue
+        labels_set.add(da.lower())
+
+    sorted_list = sorted(labels_set)
+    labels_dict = {}
+    for i, e in enumerate(sorted_list):
+        labels_dict[e] = i
+    return labels_dict
+
+
+def load_data_and_labels_dialog_act(data_file, da_encoding_file="da_encoding.json", n_prev_da=1):
     """
     Loads MR polarity data from files, splits the data into words and generates labels.
     Returns split sentences and labels.
     """
     # Load data from files
     examples = list(open(data_file, "r").readlines())
-    return sample2text_prev_da(examples)
+    if os.path.exists(da_encoding_file):
+        with open(da_encoding_file, 'r') as in_file:
+            labels_dict = json.load(in_file)
+    else:
+        labels_dict = create_labels_dict(examples)
+        with open(da_encoding_file, 'w') as out_file:
+            json.dump(labels_dict, out_file)
+
+    return sample2text_prev_da(examples, labels_dict, n_prev_da)
 
 def load_data_and_labels(positive_data_file, negative_data_file):
     """

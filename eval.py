@@ -9,9 +9,9 @@ import data_helpers
 from text_cnn import TextCNN
 from tensorflow.contrib import learn
 import csv
-"""def append_to_additional_file(message):
+def append_to_additional_file(message):
     with open("/home/giuliano.tortoreto/slu/logging_info",'a') as out_file:
-        out_file.write(str(message)+'\n')"""
+        out_file.write(str(message)+'\n')
 
 # Parameters
 # ==================================================
@@ -94,10 +94,10 @@ with graph.as_default():
 # Print accuracy if y_test is defined
 if y_test is not None:
     correct_predictions = float(sum(all_predictions == y_test))
-    #append_to_additional_file("Total number of test examples: {}".format(len(y_test)))
-    print("Total number of test examples: {}".format(len(y_test)))
-    #append_to_additional_file("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
-    print("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
+    append_to_additional_file("Total number of test examples: {}".format(len(y_test)))
+    #print("Total number of test examples: {}".format(len(y_test)))
+    append_to_additional_file("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
+    #print("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
 
 # Save the evaluation to a csv
 predictions_human_readable = np.column_stack((np.array(x_raw), all_predictions))
