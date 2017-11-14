@@ -10,7 +10,8 @@ class TextCNN(object):
     def __init__(
       self, sequence_length, num_classes, vocab_size,
       embedding_size, filter_sizes, num_filters, l2_reg_lambda=0.0, previous_da=1):
-
+        if previous_da == 0:
+            previous_da =1
         # Placeholders for input, output and dropout
         self.input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
         self.input_z = tf.placeholder(tf.float32, [None, num_classes*previous_da], name="input_z")

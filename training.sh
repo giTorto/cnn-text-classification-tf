@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#PBS -l walltime=1:0:0
+#PBS -l walltime=12:0:0
 
 #PBS -q gpuq
 
