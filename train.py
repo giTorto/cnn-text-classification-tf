@@ -14,8 +14,9 @@ from tensorflow.contrib import learn
 
 # Data loading params
 tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
-tf.flags.DEFINE_string("training_data_file", "/home/giuliano.tortoreto/slu/switchboard_data/switchboard_train_set_paper", "Data source for the training data.")
 tf.flags.DEFINE_string("dev_data_file", "", "Data source for the training data.")
+tf.flags.DEFINE_string("training_data_file", "/home/giuliano.tortoreto/slu/switchboard_data/", "Data source for the training data.")
+#tf.flags.DEFINE_string("positive_data_file", "./complete_learn2.txt", "Data source for the training data.")
 
 # Model Hyperparameters
 tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
