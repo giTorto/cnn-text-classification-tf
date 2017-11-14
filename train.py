@@ -13,8 +13,9 @@ from tensorflow.contrib import learn
 # ==================================================
 
 # Data loading params
-tf.flags.DEFINE_float("dev_sample_percentage", .01, "Percentage of the training data to use for validation")
-tf.flags.DEFINE_string("positive_data_file", "./complete_learn2.txt", "Data source for the training data.")
+tf.flags.DEFINE_float("dev_sample_percentage", .10, "Percentage of the training data to use for validation")
+tf.flags.DEFINE_string("training_data_file", "complete_learn2.txt", "Data source for the training data.")
+tf.flags.DEFINE_string("dev_data_file", "", "Data source for the training data.")
 
 # Model Hyperparameters
 tf.flags.DEFINE_integer("embedding_dim", 128, "Dimensionality of character embedding (default: 128)")
@@ -25,7 +26,7 @@ tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 
 
 # Training parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-tf.flags.DEFINE_integer("num_epochs", 5, "Number of training epochs (default: 200)")
+tf.flags.DEFINE_integer("num_epochs", 10, "Number of training epochs (default: 200)")
 tf.flags.DEFINE_integer("evaluate_every", 300, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 300, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
@@ -46,12 +47,16 @@ print("")
 
 # Load data
 print("Loading data...")
-x_text, z, y = data_helpers.load_data_and_labels_dialog_act(FLAGS.positive_data_file)
+x_text, z, y = data_helpers.load_data_and_labels_dialog_act(FLAGS.training_data_file)
 
 print(len(x_text), len(z), len(y))
 
 # Build vocabulary
 max_document_length = max([len(x.split(" ")) for x in x_text])
+avg_doc = np.mean([len(x.split(" ")) for x in x_text])
+var_doc = np.var([len(x.split(" ")) for x in x_text])/2
+max_document_length = min(max_document_length, int(avg_doc+var_doc))
+print max_document_length, avg_doc, var_doc
 vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
 x = np.array(list(vocab_processor.fit_transform(x_text)))
 
@@ -63,10 +68,16 @@ y_shuffled = y[shuffle_indices]
 z_shuffled = z[shuffle_indices]
 # Split train/test set
 # TODO: This is very crude, should use cross-validation
-dev_sample_index = -1 * int(FLAGS.dev_sample_percentage * float(len(y)))
-x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[dev_sample_index:]
-y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
-z_train, z_dev = z_shuffled[:dev_sample_index], z_shuffled[dev_sample_index:]
+if FLAGS.dev_data_file == "":
+    dev_sample_index = -1 * int(FLAGS.dev_sample_percentage * float(len(y)))
+    x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[dev_sample_index:]
+    y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
+    z_train, z_dev = z_shuffled[:dev_sample_index], z_shuffled[dev_sample_index:]
+else:
+    x_train = x_shuffled
+    y_train = y_shuffled
+    z_train = z_shuffled
+    x_dev, z_dev, y_dev = data_helpers.load_data_and_labels_dialog_act(FLAGS.dev_data_file)
 print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
 print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
 
