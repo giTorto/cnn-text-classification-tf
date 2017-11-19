@@ -1,5 +1,6 @@
 import json
 
+import nltk
 import numpy as np
 import re
 import itertools
@@ -51,6 +52,11 @@ def create_one_hot_encoding(dialog_act, labels_dict):
     if index is not None:
         vector[index] = 1
     return vector
+
+def tokenize(iterator):
+    for value in iterator:
+        yield nltk.word_tokenize(value)
+
 
 def append_to_additional_file(message):
     with open("/home/giuliano.tortoreto/slu/logging_eval_info.txt",'a') as out_file:
