@@ -18,8 +18,7 @@ def load_word2vec(file_name, initW=None, vocab_processor=None):
     for word in model.wv.vocab:
         vector = model[word]
         if initW is None or vocab_processor is None:
-            print word
-            print "vocab processor and initW not initialized"
+            print("vocab processor and initW not initialized")
             break
         idx = vocab_processor.vocabulary_.get(word)
         if idx != 0:
@@ -30,25 +29,26 @@ def load_word2vec(file_name, initW=None, vocab_processor=None):
 # ==================================================
 
 # Data loading params
-tf.flags.DEFINE_float("dev_sample_percentage", .01, "Percentage of the training data to use for validation")
+tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
 tf.flags.DEFINE_string("dev_data_file", "", "Data source for the training data.")
-#tf.flags.DEFINE_string("training_data_file", "/home/giuliano.tortoreto/slu/switchboard_data/switchboard_train_set_paper", "Data source for the training data.")
-tf.flags.DEFINE_string("training_data_file", "/Users/gt/data/switchboard_train_set_paper", "Data source for the training data.")
-##tf.flags.DEFINE_string("positive_data_file", "./complete_learn2.txt", "Data source for the training data.")
+tf.flags.DEFINE_string("training_data_file", "/home/giuliano.tortoreto/slu/switchboard_data/switchboard_train_set_paper", "Data source for the training data.")
+#tf.flags.DEFINE_string("training_data_file", "/Users/gt/data/switchboard_train_set_paper", "Data source for the training data.")
+tf.flags.DEFINE_string("positive_data_file", "./complete_learn2.txt", "Data source for the training data.")
 
 # Model Hyperparameters
-tf.flags.DEFINE_integer("embedding_dim", 300, "Dimensionality of character embedding (default: 128)")
+tf.flags.DEFINE_integer("embedding_dim", 150, "Dimensionality of character embedding (default: 128)")
 tf.flags.DEFINE_string("filter_sizes", "3,4,5", "Comma-separated filter sizes (default: '3,4,5')")
-tf.flags.DEFINE_integer("num_filters", 128, "Number of filters per filter size (default: 128)")
+tf.flags.DEFINE_integer("num_filters", 150, "Number of filters per filter size (default: 128)")
 tf.flags.DEFINE_float("dropout_keep_prob", 0.5, "Dropout keep probability (default: 0.5)")
-tf.flags.DEFINE_float("l2_reg_lambda", 0.001, "L2 regularization lambda (default: 0.0)")
+tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 0.0)")
+tf.flags.DEFINE_string("word2vec",None, "The path to the file containing word2vec vectors")
 #tf.flags.DEFINE_string("word2vec","/home/giuliano.tortoreto/GoogleNews-vectors-negative300.bin", "The path to the file containing word2vec vectors")
-tf.flags.DEFINE_string("word2vec","/Users/gt/Projects/GoogleNews-vectors-negative300.bin", "The path to the file containing word2vec vectors")
+#tf.flags.DEFINE_string("word2vec","/Users/gt/Projects/GoogleNews-vectors-negative300.bin", "The path to the file containing word2vec vectors")
 
 # Training parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
 
-tf.flags.DEFINE_integer("num_epochs", 2, "Number of training epochs (default: 200)")
+tf.flags.DEFINE_integer("num_epochs", 100, "Number of training epochs (default: 200)")
 tf.flags.DEFINE_integer("evaluate_every", 500, "Evaluate model on dev set after this many steps (default: 100)")
 tf.flags.DEFINE_integer("checkpoint_every", 500, "Save model after this many steps (default: 100)")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
@@ -127,7 +127,7 @@ with tf.Graph().as_default():
 
         # Define Training procedure
         global_step = tf.Variable(0, name="global_step", trainable=False)
-        optimizer = tf.train.AdamOptimizer(1e-5)
+        optimizer = tf.train.AdamOptimizer(1e-3)
         grads_and_vars = optimizer.compute_gradients(cnn.loss)
         train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
@@ -179,7 +179,7 @@ with tf.Graph().as_default():
             initW = np.random.uniform(-0.25, 0.25, (len(vocab_processor.vocabulary_), FLAGS.embedding_dim))
             # load any vectors from the word2vec
             print("Load word2vec file {}\n".format(FLAGS.word2vec))
-            #data_helpers.append_to_additional_file("Load word2vec file {}\n".format(FLAGS.word2vec))
+            data_helpers.append_to_additional_file("Load word2vec file {}\n".format(FLAGS.word2vec))
             initW, vocab_processor = load_word2vec(FLAGS.word2vec, initW, vocab_processor)
             """with open(FLAGS.word2vec, "rb") as f:
                 header = f.readline()
@@ -207,6 +207,7 @@ with tf.Graph().as_default():
 
             sess.run(cnn.W.assign(initW))
 
+            data_helpers.append_to_additional_file("Loaded word2vec file")
 
         def train_step(x_batch, z_batch, y_batch):
             """

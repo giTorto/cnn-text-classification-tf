@@ -17,15 +17,14 @@ def append_to_additional_file(message):
 # ==================================================
 
 # Data Parameters
-#tf.flags.DEFINE_string("positive_data_file", "/home/giuliano.tortoreto/slu/switchboard_data/switchboard_test_set_paper", "Data source for the positive data.")
-tf.flags.DEFINE_string("positive_data_file", "/Users/gt/data/switchboard_test_set_paper", "Data source for the positive data.")
+tf.flags.DEFINE_string("positive_data_file", "/home/giuliano.tortoreto/slu/switchboard_data/switchboard_test_set_paper", "Data source for the positive data.")
+#tf.flags.DEFINE_string("positive_data_file", "/Users/gt/data/switchboard_test_set_paper", "Data source for the positive data.")
 #tf.flags.DEFINE_string("positive_data_file","./dBank_Task.txt", "Data source for the positive data.")
 
 # Eval Parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-#tf.flags.DEFINE_string("checkpoint_dir", "/home/giuliano.tortoreto/runs/1510665001/checkpoints", "Checkpoint directory from training run")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1510931274/checkpoints", "Checkpoint directory from training run")
-#tf.flags.DEFINE_string("checkpoint_dir", "./runs/1510566318/checkpoints/", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "/home/giuliano.tortoreto/runs/1510665001/checkpoints", "Checkpoint directory from training run")
+#tf.flags.DEFINE_string("checkpoint_dir", "./runs/1510931274/checkpoints", "Checkpoint directory from training run")
 tf.flags.DEFINE_boolean("eval_train", True, "Evaluate on all training data")
 
 # Misc Parameters
@@ -94,12 +93,13 @@ with graph.as_default():
             all_predictions = np.concatenate([all_predictions, batch_predictions])
 
 # Print accuracy if y_test is defined
+append_to_additional_file(len(y_test))
 if y_test is not None:
     correct_predictions = float(sum(all_predictions == y_test))
-    #append_to_additional_file("Total number of test examples: {}".format(len(y_test)))
-    print("Total number of test examples: {}".format(len(y_test)))
-    #append_to_additional_file("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
-    print("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
+    append_to_additional_file("Total number of test examples: {}".format(len(y_test)))
+    #print("Total number of test examples: {}".format(len(y_test)))
+    append_to_additional_file("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
+    #   print("Accuracy: {:g}".format(correct_predictions/float(len(y_test))))
 
 # Save the evaluation to a csv
 predictions_human_readable = np.column_stack((np.array(x_raw), all_predictions))
